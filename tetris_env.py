@@ -8,6 +8,8 @@ from typing import Optional
 
 import numpy as np
 
+ACTION_SPACE = 40 # Maximum number of placements: 4 rotations * 10 columns
+
 class Tetromino:
     """Represents a Tetromino piece with its position, type, and rotation."""
 
@@ -233,24 +235,21 @@ class Tetris:
             True indicates that the action is legal, False indicates it is illegal.
         """
 
-        max_rotations = 4
-        max_columns = self.width
-
         # All actions are initially illegal. Actions are represented
         # as indices in base max_columns as rotation * max_columns + column
         # where rotation is in [0, 3] and column is in [0, 9]
-        legal_actions = np.zeros((max_columns * max_rotations,), dtype=bool)
+        legal_actions = np.zeros(ACTION_SPACE, dtype=bool)
 
         # Get the number of unique rotations for the current Tetromino
         # since Tetrominoes have symmetric rotations.
         unique_rotations = len(Tetromino.figures[self.get_current_tetromino_type()])
 
         for rotation in range(unique_rotations):
-            for col in range(max_columns):
+            for col in range(self.width):
                 # Try to spawn the Tetromino in the specified column and rotation
                 self.tetromino.spawn(x=col, rotation=rotation)
                 if not self.intersects():
-                    legal_actions[rotation * max_columns + col] = True
+                    legal_actions[rotation * self.width + col] = True
 
         # Despawn the Tetromino after checking all legal actions
         # to ensure the state is clean for the next action
@@ -347,3 +346,77 @@ class Tetris:
         flattened_grid, tetromino_type = partial_state
         self.grid = flattened_grid.reshape((self.height, self.width))
         self.create_tetromino(tetromino_type)
+
+    def _intersects_stateless(self, grid, tetromino: Tetromino) -> bool:
+        """Stateless version of intersects that operates on a given grid and Tetromino."""
+        x, y = tetromino.x, tetromino.y
+        for cell_index in tetromino.image():
+            tetromino_row = y + (cell_index // 4)
+            tetromino_col = x + (cell_index % 4)
+            if ( # OOB checks and collision check
+                tetromino_row < 0 or
+                tetromino_row >= self.height or
+                tetromino_col >= self.width or
+                tetromino_col < 0 or
+                grid[tetromino_row][tetromino_col] > 0
+            ):
+                return True
+        return False
+
+    def _break_lines_stateless(self, grid):
+        """Stateless version of break_lines that operates on a given grid."""
+        filled_lines = np.all(grid > 0, axis=1)
+        broken_lines = np.count_nonzero(filled_lines)
+        if broken_lines > 0:
+            new_grid = np.vstack((
+                np.zeros((broken_lines, self.width), dtype=np.float32),
+                grid[~filled_lines]
+            ))
+            return new_grid
+        return grid
+
+    def count_holes(self, grid: np.ndarray) -> int:
+        """Count the number of holes in the grid."""
+        filled_mask = grid > 0
+        cumulative_filled = np.cumsum(filled_mask, axis=0)
+        # A hole is an empty cell below a filled cell
+        holes = (~filled_mask) & (cumulative_filled > 0)
+        return holes.sum()
+
+    def prune_hole_creation(self, available_actions):
+        """
+        Simulates all available actions and returns the set of actions with minimum hole creation.
+        Note: this can be negative if the action breaks lines that uncover holes.
+        """
+
+        tmp_grid = np.zeros_like(self.grid)
+        tmp_tetromino = Tetromino(self.get_current_tetromino_type())
+
+        holes_before = self.count_holes(tmp_grid)
+        holes_created = np.full_like(available_actions, fill_value=float("inf"), dtype=np.float32)
+
+        for i, action_idx in enumerate(available_actions):
+
+            rotation, col = divmod(action_idx, self.width)
+            tmp_tetromino.spawn(x=col, rotation=rotation)
+
+            np.copyto(tmp_grid, self.grid)
+
+            # Hard drop
+            while not self._intersects_stateless(tmp_grid, tmp_tetromino):
+                tmp_tetromino.y += 1
+            tmp_tetromino.y -= 1
+
+            # Freeze
+            x, y = tmp_tetromino.x, tmp_tetromino.y
+            for cell_index in tmp_tetromino.image():
+                row, col = y + (cell_index // 4), x + (cell_index % 4)
+                tmp_grid[row][col] = 1
+
+            # Break lines
+            final_grid = self._break_lines_stateless(tmp_grid)
+
+            # Store holes created by this action
+            holes_created[i] = self.count_holes(final_grid) - holes_before
+
+        return available_actions[holes_created == np.min(holes_created)]
