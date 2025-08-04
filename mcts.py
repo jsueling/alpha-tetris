@@ -291,7 +291,7 @@ class ChanceNode:
 
         # Each chance node leads to a decision node for each possible Tetromino type.
         # Warning: References to child node objects in np arrays causes memory leak
-        self.decision_node_children: np.ndarray[MCDecisionNodeAsync] = \
+        self.decision_node_children: list[MCDecisionNodeAsync] = \
             [None] * len(Tetromino.figures)
 
         self.visit_counts = np.zeros(len(Tetromino.figures), dtype=np.float32)

@@ -57,7 +57,7 @@ class Tetromino:
 
     def spawn(self, x: int, rotation: int):
         """
-        Spawns the Tetromino in the grid at row 0 and the specified column (x)
+        Sets the Tetromino's position to row 0, in the specified column (x)
         and rotation.
         """
         self.x = x
@@ -420,3 +420,41 @@ class Tetris:
             holes_created[i] = self.count_holes(final_grid) - holes_before
 
         return available_actions[holes_created == np.min(holes_created)]
+
+    def get_grids_after_available_actions(self, available_actions: np.ndarray) -> np.ndarray:
+        """
+        Returns the grids which result from applying each of the available actions.
+        Each action is represented as 2 digits in base 10:
+        - The first digit is the rotation (0-3).
+        - The second digit is the column (0-9).
+        """
+
+        # Preallocate result grids and temporary grid, reused for simulating each action
+        grids = np.zeros((len(available_actions), self.height, self.width), dtype=np.float32)
+        tmp_grid = np.zeros_like(self.grid)
+        tmp_tetromino = Tetromino(self.get_current_tetromino_type())
+
+        for i, action_idx in enumerate(available_actions):
+
+            np.copyto(tmp_grid, self.grid)
+            rotation, col = divmod(action_idx, self.width)
+            tmp_tetromino.spawn(x=col, rotation=rotation)
+
+            # Hard drop
+            while not self._intersects_stateless(tmp_grid, tmp_tetromino):
+                tmp_tetromino.y += 1
+            tmp_tetromino.y -= 1
+
+            # Freeze
+            x, y = tmp_tetromino.x, tmp_tetromino.y
+            for cell_index in tmp_tetromino.image():
+                row, col = y + (cell_index // 4), x + (cell_index % 4)
+                tmp_grid[row][col] = 1
+
+            # Break lines
+            final_grid = self._break_lines_stateless(tmp_grid)
+
+            # Copy resulting grid after applying the action
+            np.copyto(grids[i], final_grid)
+
+        return grids
