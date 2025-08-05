@@ -20,7 +20,7 @@ DEVICE = torch.device(
     ("mps" if torch.backends.mps.is_available() else "cpu")
 )
 
-C_FEATURE = 0.25   # Hyperparameter modulating the effect of feature scores on action selection
+C_FEATURE = 0.25  # Hyperparameter modulating the effect of feature scores on action selection
 FEATURE_TEMP = 10 # Temperature to squash the feature scores using tanh
 
 class UnsupervisedFeaturesMCDNA(MCDecisionNodeAsync):
@@ -36,6 +36,7 @@ class UnsupervisedFeaturesMCDNA(MCDecisionNodeAsync):
     def __init__(self, *args, **kwargs):
         super(UnsupervisedFeaturesMCDNA, self).__init__(*args, **kwargs)
 
+        # Computed at evaluation
         self.feature_scores = None
 
     def get_best_action_by_puct(self) -> 'int':
@@ -49,8 +50,9 @@ class UnsupervisedFeaturesMCDNA(MCDecisionNodeAsync):
         q_value_sums = self.q_value_sums[self.available_actions]
         visit_counts = self.visit_counts[self.available_actions]
         prior_probabilities = self.prior_probabilities[self.available_actions]
-
+        feature_scores = self.feature_scores[self.available_actions]
         expected_q_value_estimates = np.zeros_like(q_value_sums, dtype=np.float32)
+
         np.divide(
             q_value_sums,
             visit_counts,
@@ -58,9 +60,10 @@ class UnsupervisedFeaturesMCDNA(MCDecisionNodeAsync):
             where=visit_counts > 0
         )
 
-        feature_scores = self.feature_scores[self.available_actions]
+        # Modified PUCT: Exploit, explore and feature bias terms. The feature bias term is a
+        # value function estimate for the state, conditioned on a compressed representation
+        # of its most prominent features, learned by a modified Beta-VAE.
 
-        # Augmented PUCT: Exploit, explore and feature bias terms
         puct_values = (
             expected_q_value_estimates +
             C_PUCT * prior_probabilities * np.sqrt(parent_visit_count) / (visit_counts + 1) +
@@ -84,6 +87,7 @@ class UnsupervisedFeaturesMCDNA(MCDecisionNodeAsync):
         This method uses the reward predictor to compute feature scores for each
         available action based on the predicted discounted return.
         """
+
         q_value = await super(UnsupervisedFeaturesMCDNA, self).evaluate(*args, **kwargs)
 
         if self.is_terminal:

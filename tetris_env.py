@@ -309,7 +309,7 @@ class Tetris:
     def get_state(self):
         """
         Returns a representation of the current game state used by the dual-headed neural network
-        for selecting actions and evaluating the game state:
+        for predicting the value and policy at the current state:
         - The first layer encodes the grid, where each cell is either 0 (empty) or 1 (filled).
         - Layers 1 to 7 are a one-hot encoding of the current Tetromino type
         (filled with 1s when active).
@@ -319,14 +319,6 @@ class Tetris:
         tetromino_type = self.get_current_tetromino_type()
         state[tetromino_type + 1, :, :] = 1.0
         return state
-
-    def get_grid(self):
-        """
-        Returns the current grid of the Tetris game, used by the reward predictor neural network.
-        """
-        grid = np.zeros((1, self.height, self.width), dtype=np.float32)
-        np.copyto(grid[0], self.grid)
-        return grid
 
     def save_partial_state(self):
         """
@@ -386,7 +378,8 @@ class Tetris:
     def prune_hole_creation(self, available_actions):
         """
         Simulates all available actions and returns the set of actions with minimum hole creation.
-        Note: this can be negative if the action breaks lines that uncover holes.
+        Note: The number of holes created can be negative if the action breaks lines that uncovers
+        holes (removes them).
         """
 
         tmp_grid = np.zeros_like(self.grid)
@@ -397,10 +390,9 @@ class Tetris:
 
         for i, action_idx in enumerate(available_actions):
 
+            np.copyto(tmp_grid, self.grid)
             rotation, col = divmod(action_idx, self.width)
             tmp_tetromino.spawn(x=col, rotation=rotation)
-
-            np.copyto(tmp_grid, self.grid)
 
             # Hard drop
             while not self._intersects_stateless(tmp_grid, tmp_tetromino):

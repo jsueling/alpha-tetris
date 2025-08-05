@@ -240,6 +240,7 @@ class RewardPredictor:
         - mu_mean: Mean of predicted mu discounted return for each grid's stack height bin
         - mu_std: Std of predicted mu discounted return for each grid's stack height bin
         """
+
         heights = self.get_stack_height(grids)
 
         bin_indices = np.digitize(heights, bins) - 1
