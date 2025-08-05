@@ -291,7 +291,7 @@ class ChanceNode:
 
         # Each chance node leads to a decision node for each possible Tetromino type.
         # Warning: References to child node objects in np arrays causes memory leak
-        self.decision_node_children: np.ndarray[MCDecisionNodeAsync] = \
+        self.decision_node_children: list[MCDecisionNodeAsync] = \
             [None] * len(Tetromino.figures)
 
         self.visit_counts = np.zeros(len(Tetromino.figures), dtype=np.float32)
@@ -475,7 +475,7 @@ class MCDecisionNodeAsync:
                 copy_env.create_tetromino(random_min_visited_tetromino)
 
                 chance_node.decision_node_children[random_min_visited_tetromino] = \
-                MCDecisionNodeAsync(
+                self.__class__(
                     env=copy_env,
                     request_queue=decision_node.request_queue,
                     response_queues=decision_node.response_queues,
@@ -667,7 +667,8 @@ class MCDecisionNodeAsync:
             copy_env.step(action_idx)
             copy_env.create_tetromino(tetromino_type)
 
-            chance_node.decision_node_children[tetromino_type] = MCDecisionNodeAsync(
+            chance_node.decision_node_children[tetromino_type] = \
+            self.__class__(
                 env=copy_env,
                 request_queue=self.request_queue,
                 response_queues=self.response_queues,
