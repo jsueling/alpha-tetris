@@ -202,7 +202,7 @@ def to_serialisable(val):
 def load_and_display_results():
     """Load and print results from specified file path."""
 
-    directory = '../out'
+    directory = './out'
     pattern_a0_results = os.path.join(directory, '*_results.npy')
     results_files = glob.glob(pattern_a0_results)
 
