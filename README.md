@@ -16,6 +16,7 @@ Two modifications were introduced to augment the tree search policy:
 ## Features
 
 - **Deep MCTS Agent**: An agent that combines Monte Carlo Tree Search (MCTS) with a deep neural network for self-play and learning. The base agent is found in [`deep_mcts_agent.py`](deep_mcts_agent.py).
+- **Efficient Inference**: Leverages `asyncio` to batch neural network requests from multiple concurrent MCTS simulations, maximising GPU throughput.
 - **PyTorch-based ResNet model**: A custom ResNet architecture (`A0ResNet`) for policy and value prediction.
 - **Experience Replay**: Stores game transitions in a buffer for model training.
 - **Checkpointing**: Automatically saves and restores training progress.
@@ -31,7 +32,7 @@ Two modifications were introduced to augment the tree search policy:
     - Biases the search by modifying the PUCT formula using a $\beta$-VAE, modified to predict rewards ([`reward_predictor.py`](reward_predictor.py)).
     - Prunes actions not creating minimum number of holes.
 - **`tetris_env.py`**: Contains the Tetris game environment.
-- **`inference_server.py`**: Orchestrates efficient batching of model inference requests.
+- **`inference_server.py`**: Orchestrates efficient batching of model inference requests using `asyncio` to collect requests from concurrent search threads.
 - **`experience_replay_buffer.py`**: Implements the replay buffer for storing game transitions.
 - **`Dockerfile`**: Defines the containerised environment for the project.
 - **`plot_results.py`**: Script to visualise training results.
