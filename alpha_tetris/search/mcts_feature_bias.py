@@ -12,8 +12,8 @@ This file contains modifications of the base MCTS algorithm for Tetris found in 
 import numpy as np
 import torch
 
-from mcts import MCDecisionNodeAsync, ACTION_SPACE, C_PUCT
-from reward_predictor import RewardPredictor
+from alpha_tetris.search.mcts import MCDecisionNodeAsync, ACTION_SPACE, C_PUCT
+from alpha_tetris.models.reward_predictor import RewardPredictor
 
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else \

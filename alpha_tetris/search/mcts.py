@@ -13,7 +13,7 @@ import asyncio
 import numpy as np
 import torch
 
-from tetris_env import Tetris, Tetromino
+from alpha_tetris.env.tetris_env import Tetris, Tetromino
 
 ACTION_SPACE = 40 # Rotations * Columns
 C_PUCT = 1.0  # Hyperparameter modulating prior-guided exploration bonus in PUCT

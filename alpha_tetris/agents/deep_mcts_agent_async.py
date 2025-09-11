@@ -10,10 +10,15 @@ import torch
 from tqdm import tqdm
 import numpy as np
 
-from deep_mcts_agent import DeepMCTSAgent, ACTION_SPACE, MCTS_ITERATIONS, BATCH_SIZE
-from mcts import MCDecisionNodeAsync
-from inference_server import AsyncInferenceServer
-from model import A0ResNet
+from alpha_tetris.agents.deep_mcts_agent import (
+    DeepMCTSAgent,
+    ACTION_SPACE,
+    MCTS_ITERATIONS,
+    BATCH_SIZE
+)
+from alpha_tetris.search.mcts import MCDecisionNodeAsync
+from alpha_tetris.server.inference_server import AsyncInferenceServer
+from alpha_tetris.models.a0_resnet import A0ResNet
 
 class DeepMCTSAgentAsync(DeepMCTSAgent):
     """Asynchronous Deep MCTS agent that learns how to play Tetris."""

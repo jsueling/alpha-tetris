@@ -12,7 +12,7 @@ import numpy as np
 import torch
 
 if TYPE_CHECKING:
-    from deep_mcts_agent import DeepMCTSAgent
+    from alpha_tetris.agents.deep_mcts_agent import DeepMCTSAgent
 
 class Checkpoint:
     """A class that handles saving and loading the entire training state of the agent"""

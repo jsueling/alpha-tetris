@@ -6,11 +6,11 @@ from tqdm import tqdm
 import numpy as np
 import torch
 
-from experience_replay_buffer import ExperienceReplayBuffer
-from tetris_env import Tetris
-from model import A0ResNet
-from score_normaliser import ScoreNormaliser
-from checkpoint import Checkpoint
+from alpha_tetris.memory.experience_replay_buffer import ExperienceReplayBuffer
+from alpha_tetris.env.tetris_env import Tetris
+from alpha_tetris.models.a0_resnet import A0ResNet
+from alpha_tetris.utils.score_normaliser import ScoreNormaliser
+from alpha_tetris.training.checkpoint import Checkpoint
 
 MCTS_ITERATIONS = 800 # Number of MCTS iterations per action selection
 ACTION_SPACE = 40 # Upper bound on possible actions for hard drop (rotations * columns placements)

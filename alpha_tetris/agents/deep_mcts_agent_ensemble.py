@@ -11,11 +11,16 @@ import torch
 from torch import multiprocessing as torch_mp
 import numpy as np
 
-from deep_mcts_agent import DeepMCTSAgent, ACTION_SPACE, MCTS_ITERATIONS, BATCH_SIZE
-from tetris_env import Tetris
-from mcts import MCTreeNodeDeterminised
-from inference_server import InferenceServer
-from model import A0ResNet
+from alpha_tetris.agents.deep_mcts_agent import (
+    DeepMCTSAgent,
+    ACTION_SPACE,
+    MCTS_ITERATIONS,
+    BATCH_SIZE
+)
+from alpha_tetris.env.tetris_env import Tetris
+from alpha_tetris.search.mcts import MCTreeNodeDeterminised
+from alpha_tetris.server.inference_server import InferenceServer
+from alpha_tetris.models.a0_resnet import A0ResNet
 
 RANDOM_SEED_MODULUS = 2 ** 32 # Seed methods accept 32-bit integers only
 

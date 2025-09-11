@@ -8,7 +8,7 @@ from torch import Tensor, nn
 import numpy as np
 
 if TYPE_CHECKING:
-    from tetris_env import Tetris
+    from alpha_tetris.env.tetris_env import Tetris
 
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else \
