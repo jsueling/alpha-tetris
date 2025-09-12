@@ -1,6 +1,6 @@
 # AlphaTetris
 
-This project implements a Deep Monte Carlo Tree Search agent, inspired by AlphaZero, to learn and play the game of Tetris. The agent uses a residual neural network to guide its search and improve its policy and value estimates over time.
+This project implements a Deep Monte Carlo Tree Search agent, inspired by AlphaZero, that learns to play Tetris. The agent uses a residual neural network to guide its search and improve its policy and value estimates over time.
 
 Two modifications were introduced to augment the tree search policy:
 1. Biasing the search by altering the PUCT formula using a $\beta$-VAE, modified to predict rewards.
@@ -15,7 +15,7 @@ Two modifications were introduced to augment the tree search policy:
 
 ## Features
 
-- **Deep MCTS Agent**: An agent that combines Monte Carlo Tree Search (MCTS) with a deep neural network for self-play and learning. The base agent is found in [`deep_mcts_agent.py`](deep_mcts_agent.py).
+- **Deep MCTS Agent**: An agent that integrates Monte Carlo Tree Search (MCTS) with a deep neural network for self-play and learning. The base agent can be found in [`alpha_tetris/agents/deep_mcts_agent.py`](alpha_tetris/agents/deep_mcts_agent.py).
 - **Efficient Inference**: Leverages `asyncio` to batch neural network requests from multiple concurrent MCTS simulations, maximising GPU throughput.
 - **PyTorch-based ResNet model**: A custom ResNet architecture (`A0ResNet`) for policy and value prediction.
 - **Experience Replay**: Stores game transitions in a buffer for model training.
@@ -25,18 +25,26 @@ Two modifications were introduced to augment the tree search policy:
 
 ## Project Structure
 
-- **`deep_mcts_agent.py`**: Orchestrates the main training loop, MCTS, and agent logic.
-- **`model.py`**: Defines the `A0ResNet` neural network architecture.
-- **`mcts.py`**: Defines the core MCTS algorithm.
-- **`mcts_feature_bias.py`** Defines modifications to search logic:
-    - Biases the search by modifying the PUCT formula using a $\beta$-VAE, modified to predict rewards ([`reward_predictor.py`](reward_predictor.py)).
-    - Prunes actions not creating minimum number of holes.
-- **`tetris_env.py`**: Contains the Tetris game environment.
-- **`inference_server.py`**: Orchestrates efficient batching of model inference requests using `asyncio` to collect requests from concurrent search threads.
-- **`experience_replay_buffer.py`**: Implements the replay buffer for storing game transitions.
-- **`Dockerfile`**: Defines the containerised environment for the project.
-- **`plot_results.py`**: Script to visualise training results.
-- **`pyproject.toml`**: Defines project dependencies and metadata for Poetry.
+The project is organised into a Python package (`alpha_tetris`) and several top-level configuration and documentation files.
+
+```
+alpha-tetris/
+├── alpha_tetris/           # Main source code package
+│   ├── agents/             # Orchestrates the training loop, MCTS and agent logic
+│   ├── env/                # Game environment logic
+│   ├── memory/             # Experience replay buffer
+│   ├── models/             # Neural network architectures
+│   ├── search/             # MCTS algorithms
+│   ├── server/             # Inference server for efficient batching of requests
+│   ├── training/           # Core training loop and logic
+│   └── utils/              # Helper utilities
+├── .gitignore              # Specifies files and directories to be ignored by Git
+├── Dockerfile              # Definition of containerised environment
+├── LICENSE                 # License information
+├── poetry.lock             # Exact versions of installed dependencies
+├── pyproject.toml          # Project dependencies and metadata
+└── README.md               # This file
+```
 
 ## Installation
 
@@ -58,14 +66,14 @@ This project uses [Poetry](https://python-poetry.org/) for dependency management
     ```
 
 ## Usage
-To start the training process, run the `train_agent.py` script with the required arguments.
+To start the training process, run the `main.py` module from the `alpha_tetris` directory with the required arguments.
 
 ### Running the Training
 
 Execute the script from within the Poetry environment:
 
 ```bash
-poetry run python train_agent.py -a <agent_type> -c <checkpoint_name>
+poetry run python -m alpha_tetris.main -a <agent_type> -c <checkpoint_name>
 ```
 
 ### Command-Line Arguments
@@ -81,21 +89,26 @@ poetry run python train_agent.py -a <agent_type> -c <checkpoint_name>
 **Train an asynchronous agent:**
 
 ```bash
-poetry run python train_agent.py -a async -c tetris_v1
+poetry run python -m alpha_tetris.main -a async -c tetris_v1
 ```
 This will start training with `DeepMCTSAgentAsync` and save checkpoints under the prefix `tetris_v1_async_seed_42`.
 
 **Train an ensemble agent with a specific seed:**
 
 ```bash
-poetry run python train_agent.py --agent_type ensemble --checkpoint_name dmcts_v2 --seed 123
+poetry run python -m alpha_tetris.main -a ensemble -c tetris_v1 -s 123
+```
+This will start training with `DeepMCTSAgentEnsemble` and save checkpoints under the prefix `tetris_v1_ensemble_seed_123`.
+
+```bash
+poetry run python -m alpha_tetris.main --agent_type ensemble --checkpoint_name dmcts_v2 --seed 123
 ```
 This will train `DeepMCTSAgentEnsemble` with a seed of 123, saving checkpoints under the prefix `dmcts_v2_ensemble_seed_123`.
 
 ### Display results
 [`checkpoint.py`](checkpoint.py) will create an output directory, ```./out```, where the results, training state data, model and buffer are periodically saved.
 ```bash
-poetry run python checkpoint.py
+poetry run python -m alpha_tetris.training.checkpoint
 ```
 This command will fetch the training results from the output directory and print them to the terminal.
 

@@ -4,7 +4,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-DIR = "../out/"
+DIR = "./out/"
 
 RANDOM_AGENT_FP = DIR + "f3_random_async_seed_3_results.npy"
 
