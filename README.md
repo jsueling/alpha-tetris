@@ -1,9 +1,11 @@
 # AlphaTetris
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Python Version](https://img.shields.io/badge/python-3.9%2B-blue.svg)
 
 This project implements a Deep Monte Carlo Tree Search agent, inspired by AlphaZero, that learns to play Tetris. The agent uses a residual neural network to guide its search and improve its policy and value estimates over time.
 
-Two modifications were introduced to augment the tree search policy:
-1. Biasing the search by altering the PUCT formula using a $\beta$-VAE, modified to predict rewards.
+Two main modifications were introduced, augmenting the tree search policy to accelerate learning:
+1. Biasing the search by altering the PUCT formula using a $\beta$-VAE. The VAE learns to extract meaningful features from the game state without supervision (i.e., without explicit labels) and is then modified to predict rewards.
 2. Pruning actions not creating the minimum number of holes.
 
 ## Table of Contents
@@ -12,6 +14,8 @@ Two modifications were introduced to augment the tree search policy:
 - [Installation](#installation)
 - [Usage](#usage)
 - [Docker](#docker)
+- [Results](#results)
+- [License](#license)
 
 ## Features
 
@@ -52,7 +56,7 @@ This project uses [Poetry](https://python-poetry.org/) for dependency management
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/alpha-tetris.git
+    git clone https://github.com/jsueling/alpha-tetris.git
     cd alpha-tetris
     ```
 
@@ -106,11 +110,10 @@ poetry run python -m alpha_tetris.main --agent_type ensemble --checkpoint_name d
 This will train `DeepMCTSAgentEnsemble` with a seed of 123, saving checkpoints under the prefix `dmcts_v2_ensemble_seed_123`.
 
 ### Display results
-[`checkpoint.py`](checkpoint.py) will create an output directory, ```./out```, where the results, training state data, model and buffer are periodically saved.
+During training, results, state data, models and buffers are periodically saved to the `./out` directory under the checkpoint name. To view a summary of the training progress, you can run the following command:
 ```bash
 poetry run python -m alpha_tetris.training.checkpoint
 ```
-This command will fetch the training results from the output directory and print them to the terminal.
 
 ## Docker
 
@@ -133,6 +136,18 @@ For a more isolated and reproducible environment, you can use the provided [`Doc
     ```
 
     This will open a bash shell inside the container where the environment is already set up. You can then run the training script as described in the [Usage](#usage) section.
+
+## Results
+
+The performance of the agents was evaluated via benchmark episodes throughout training. Due to computational constraints, the experiment did not run to completion. The unmodified Deep MCTS agent shows steady learning, with its average line clears consistently increasing over training iterations.
+
+![Baseline Agent Performance](figures/unmodified_alphatetris.png)
+*Figure 1: Performance of the standard Deep MCTS agent over training iterations.*
+
+A comparison of the different agent variants reveals the impact of the policy modifications. The agent using domain knowledge—by pruning actions that don't create the minimum number of holes—significantly dominates the other variants. In contrast, biasing the search, with the $\beta$-VAE feature extraction method, did not lead to a noticeable improvement over the baseline agent.
+
+![Agent Comparison](figures/alphatetris_variants.png)
+*Figure 2: Learning curve comparison between the standard agent, the biased search variant, the ensemble variant and the pruning variant.*
 
 ## License
 
