@@ -139,7 +139,7 @@ For a more isolated and reproducible environment, you can use the provided [`Doc
 
 ## Results
 
-The performance of the agents was evaluated via benchmark episodes throughout training. Due to computational constraints, the experiment did not run to completion. The unmodified Deep MCTS agent shows steady learning, with its average line clears consistently increasing over training iterations.
+The performance of the agents was evaluated via benchmark episodes throughout training. Due to computational constraints, the training was concluded before the agents' performance fully converged. The unmodified Deep MCTS agent shows steady learning, with its average line clears consistently increasing over training iterations.
 
 ![Baseline Agent Performance](figures/unmodified_alphatetris.png)
 *Figure 1: Performance of the standard Deep MCTS agent over training iterations.*
